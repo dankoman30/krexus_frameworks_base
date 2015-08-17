@@ -46,6 +46,7 @@ import com.android.systemui.qs.tiles.RotationLockTile;
 import com.android.systemui.qs.tiles.ScreenOffTile;
 import com.android.systemui.qs.tiles.ScreenTimeoutTile;
 import com.android.systemui.qs.tiles.SyncTile;
+import com.android.systemui.qs.tiles.VolumeTile;
 import com.android.systemui.qs.tiles.WifiTile;
 import com.android.systemui.statusbar.policy.BluetoothController;
 import com.android.systemui.statusbar.policy.CastController;
@@ -286,6 +287,7 @@ public class QSTileHost implements QSTile.Host, Tunable {
         else if (tileSpec.equals("cell")) return new CellularTile(this);
         else if (tileSpec.equals("airplane")) return new AirplaneModeTile(this);
         else if (tileSpec.equals("dnd")) return new DndTile(this);
+        else if (tileSpec.equals("edit")) return new EditTile(this);
         else if (tileSpec.equals("rotation")) return new RotationLockTile(this);
         else if (tileSpec.equals("flashlight")) return new FlashlightTile(this);
         else if (tileSpec.equals("location")) return new LocationTile(this);
@@ -294,7 +296,7 @@ public class QSTileHost implements QSTile.Host, Tunable {
         else if (tileSpec.equals("screenoff")) return new ScreenOffTile(this);
         else if (tileSpec.equals("timeout")) return new ScreenTimeoutTile(this);
         else if (tileSpec.equals("sync")) return new SyncTile(this);
-        else if (tileSpec.equals("edit")) return new EditTile(this);
+        else if (tileSpec.equals("volume_panel")) return new VolumeTile(this);
         else if (tileSpec.startsWith(IntentTile.PREFIX)) return IntentTile.create(this,tileSpec);
         else throw new IllegalArgumentException("Bad tile spec: " + tileSpec);
     }
@@ -357,12 +359,13 @@ public class QSTileHost implements QSTile.Host, Tunable {
         else if (spec.equals("cell")) return R.string.quick_settings_cellular_detail_title;
         else if (spec.equals("airplane")) return R.string.airplane_mode;
         else if (spec.equals("dnd")) return R.string.quick_settings_dnd_label;
+        else if (spec.equals("edit")) return R.string.quick_settings_edit_label;
         else if (spec.equals("rotation")) return R.string.quick_settings_rotation_locked_label;
         else if (spec.equals("flashlight")) return R.string.quick_settings_flashlight_label;
         else if (spec.equals("location")) return R.string.quick_settings_location_label;
         else if (spec.equals("cast")) return R.string.quick_settings_cast_title;
         else if (spec.equals("hotspot")) return R.string.quick_settings_hotspot_label;
-        else if (spec.equals("edit")) return R.string.quick_settings_edit_label;
+        else if (spec.equals("volume_panel")) return R.string.quick_settings_volume_panel_label;
         return 0;
     }
 }
