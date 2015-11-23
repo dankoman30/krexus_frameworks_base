@@ -18,17 +18,12 @@ package com.android.systemui.qs;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.app.ActivityManager;
 import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Canvas;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
-import android.provider.Settings;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
@@ -64,10 +59,6 @@ public class QSDragPanel extends QSPanel implements View.OnDragListener, View.On
 
     public static final boolean DEBUG_DRAG = true;
 
-    public static final String ACTION_EDIT_TILES = "com.android.systemui.ACTION_EDIT_TILES";
-    public static final String EXTRA_EDIT = "edit";
-    public static final String EXTRA_RESET = "reset";
-
     protected final ArrayList<QSPage> mPages = new ArrayList<>();
 
     protected QSViewPager mViewPager;
@@ -90,16 +81,6 @@ public class QSDragPanel extends QSPanel implements View.OnDragListener, View.On
     List<TileRecord> mCurrentlyAnimating
             = Collections.synchronizedList(new ArrayList<TileRecord>());
     private Collection<QSTile<?>> mTempTiles = null;
-
-    private BroadcastReceiver mEditReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.hasExtra(EXTRA_RESET) && intent.getBooleanExtra(EXTRA_RESET, false)) {
-                setEditing(false);
-                setTiles(mHost.getTiles());
-            }
-        }
-    };
 
     public QSDragPanel(Context context) {
         this(context, null);
@@ -241,17 +222,6 @@ public class QSDragPanel extends QSPanel implements View.OnDragListener, View.On
     }
 
     @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        mContext.registerReceiver(mEditReceiver, new IntentFilter(ACTION_EDIT_TILES));
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        mContext.unregisterReceiver(mEditReceiver);
-
-    @Override
     public boolean hasOverlappingRendering() {
         return mClipper.isAnimating();
     }
@@ -292,7 +262,6 @@ public class QSDragPanel extends QSPanel implements View.OnDragListener, View.On
     }
 
     protected void onStopDrag() {
-        //mDraggingRecord.tileView.setVisibility(View.VISIBLE);
         mDraggingRecord.tileView.setAlpha(1f);
 
         mDraggingRecord = null;
@@ -1142,8 +1111,6 @@ public class QSDragPanel extends QSPanel implements View.OnDragListener, View.On
             ti.row = tnext.row;
             ti.col = tnext.col;
             ti.destination.x = getLeft(tnext.destinationPage, ti.row, ti.col, desiredColumnCount);
-//            ti.destination.x = getLeft(ti.row, ti.col, desiredColumnCount,
-//                    tnext.destinationPage == 0 && ti.row == 0);
             ti.destination.y = getRowTop(ti.row);
 
             if (ti.destinationPage != tnext.destinationPage) {
@@ -1449,14 +1416,6 @@ public class QSDragPanel extends QSPanel implements View.OnDragListener, View.On
         List<String> tiles = new ArrayList<>(mHost.getTileSpecs());
         tiles.add(tile);
         mHost.setTiles(tiles);
-    }
-
-    public void reset() {
-        Settings.Secure.putStringForUser(getContext().getContentResolver(),
-                QSTileHost.TILES_SETTING, "default", ActivityManager.getCurrentUser());
-        setEditing(false);
-        setTiles(mHost.getTiles());
-        requestLayout();
     }
 
     public boolean isDragging() {
