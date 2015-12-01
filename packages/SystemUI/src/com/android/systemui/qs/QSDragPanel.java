@@ -33,6 +33,7 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,7 +41,6 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 import com.android.internal.logging.MetricsLogger;
 import com.android.systemui.R;
 import com.android.systemui.qs.tiles.EditTile;
@@ -50,6 +50,7 @@ import com.android.systemui.settings.ToggleSlider;
 import com.android.systemui.statusbar.phone.QSTileHost;
 import com.android.systemui.statusbar.phone.SystemUIDialog;
 import com.android.systemui.tuner.QsTuner;
+import com.viewpagerindicator.CirclePageIndicator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,6 +74,7 @@ public class QSDragPanel extends QSPanel implements View.OnDragListener, View.On
     protected QSViewPager mViewPager;
     protected PagerAdapter mPagerAdapter;
     QSPanelTopView mQsPanelTop;
+    CirclePageIndicator mPageIndicator;
 
     private DragTileRecord mDraggingRecord;
     private boolean mEditing;
@@ -133,8 +135,10 @@ public class QSDragPanel extends QSPanel implements View.OnDragListener, View.On
                 });
         mViewPager = new QSViewPager(getContext());
 
+        mPageIndicator = new CirclePageIndicator(getContext());
         addView(mDetail);
         addView(mViewPager);
+        addView(mPageIndicator);
         addView(mFooter.getView());
 
         mClipper = new QSDetailClipper(mDetail);
@@ -191,7 +195,11 @@ public class QSDragPanel extends QSPanel implements View.OnDragListener, View.On
                 return view == object;
             }
         };
-        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        mViewPager.setAdapter(mPagerAdapter);
+        mViewPager.setCurrentItem(0);
+
+        mPageIndicator.setViewPager(mViewPager);
+        mPageIndicator.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset,
                                        int positionOffsetPixels) {
@@ -223,8 +231,6 @@ public class QSDragPanel extends QSPanel implements View.OnDragListener, View.On
 
             }
         });
-        mViewPager.setAdapter(mPagerAdapter);
-        mViewPager.setCurrentItem(0);
 
         setClipChildren(false);
         updateResources();
@@ -496,14 +502,13 @@ public class QSDragPanel extends QSPanel implements View.OnDragListener, View.On
         final int width = MeasureSpec.getSize(widthMeasureSpec);
 
         mQsPanelTop.measure(exactly(width), MeasureSpec.UNSPECIFIED);
-
-        final int brightnessHeight = mQsPanelTop.getMeasuredHeight();
-
+        mViewPager.measure(exactly(width), MeasureSpec.UNSPECIFIED);
+        mPageIndicator.measure(exactly(width), MeasureSpec.UNSPECIFIED);
         mFooter.getView().measure(exactly(width), MeasureSpec.UNSPECIFIED);
 
-        mViewPager.measure(exactly(width), MeasureSpec.UNSPECIFIED);
-
-        int h = brightnessHeight + mViewPager.getMeasuredHeight();
+        int h = mQsPanelTop.getMeasuredHeight()
+                + mViewPager.getMeasuredHeight()
+                + mPageIndicator.getMeasuredHeight();
         if (mFooter.hasFooter()) {
             h += mFooter.getView().getMeasuredHeight();
         }
@@ -533,12 +538,20 @@ public class QSDragPanel extends QSPanel implements View.OnDragListener, View.On
         if (DEBUG_DRAG) Log.d(TAG, "onLayout()");
         final int w = getWidth();
 
-        mQsPanelTop.layout(0, t, mQsPanelTop.getMeasuredWidth(),
-                t + mQsPanelTop.getMeasuredHeight());
+        int top = 0;
+        mQsPanelTop.layout(0, top, w, top + mQsPanelTop.getMeasuredHeight());
+        top += mQsPanelTop.getMeasuredHeight();
 
+        mViewPager.layout(0, top, w, top + mViewPager.getMeasuredHeight());
+        top += mViewPager.getMeasuredHeight();
+
+        // layout page indicator below view pager
+        mPageIndicator.layout(0, top, w, top + mPageIndicator.getMeasuredHeight());
+
+        // detail takes up whole height
         final int dh = Math.max(mDetail.getMeasuredHeight(), mViewPager.getMeasuredHeight());
-        mViewPager.layout(0, t + mQsPanelTop.getMeasuredHeight(), w, t + dh);
-        mDetail.layout(0, t, mDetail.getMeasuredWidth(), t + dh);
+        mDetail.layout(0, 0, mDetail.getMeasuredWidth(), getMeasuredHeight());
+
         if (mFooter.hasFooter()) {
             View footer = mFooter.getView();
             footer.layout(0, getMeasuredHeight() - footer.getMeasuredHeight(),
