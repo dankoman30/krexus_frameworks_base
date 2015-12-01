@@ -122,10 +122,13 @@ public class DndTile extends QSTile<QSTile.BooleanState> {
     }
 
     @Override
-    protected void handleLongClick() {
-        intent.setClassName("com.android.settings",
-            "com.android.settings.Settings$ZenModeSettingsActivity");
-        mHost.startActivityDismissingKeyguard(intent);
+    protected void handleSecondaryClick() {
+        handleClick();
+    }
+
+    @Override
+    public void handleLongClick() {
+        mHost.startActivityDismissingKeyguard(ZEN_SETTINGS);
     }
 
     @Override
@@ -194,6 +197,11 @@ public class DndTile extends QSTile<QSTile.BooleanState> {
             mController.removeCallback(mZenCallback);
             Prefs.unregisterListener(mContext, mPrefListener);
         }
+    }
+
+    @Override
+    public boolean hasDualTargetsDetails() {
+        return true;
     }
 
     private final OnSharedPreferenceChangeListener mPrefListener

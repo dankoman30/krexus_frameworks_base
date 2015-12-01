@@ -96,6 +96,11 @@ public class CellularTile extends QSTile<QSTile.SignalState> {
     }
 
     @Override
+    protected void handleSecondaryClick() {
+        handleClick();
+    }
+
+    @Override
     protected void handleLongClick() {
         mHost.startActivityDismissingKeyguard(MOBILE_NETWORK_SETTINGS);
     }
@@ -141,6 +146,11 @@ public class CellularTile extends QSTile<QSTile.SignalState> {
     @Override
     public int getMetricsCategory() {
         return MetricsLogger.QS_CELLULAR;
+    }
+
+    @Override
+    public boolean hasDualTargetsDetails() {
+        return true;
     }
 
     // Remove the period from the network name
